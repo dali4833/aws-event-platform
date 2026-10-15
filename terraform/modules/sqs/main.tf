@@ -34,3 +34,26 @@ resource "aws_sqs_queue" "main" {
     ManagedBy   = "terraform"
   }
 }
+
+
+# -----------------------------------------------------------------------------
+# SQS queue policy — allows EventBridge to send messages
+# -----------------------------------------------------------------------------
+data "aws_iam_policy_document" "sqs_events_policy" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["events.amazonaws.com"]
+    }
+
+    actions   = ["sqs:SendMessage"]
+    resources = [aws_sqs_queue.main.arn]
+  }
+}
+
+resource "aws_sqs_queue_policy" "main" {
+  queue_url = aws_sqs_queue.main.id
+  policy    = data.aws_iam_policy_document.sqs_events_policy.json
+}

@@ -68,3 +68,17 @@ output "lambda_role_arn" {
 output "lambda_log_group_name" {
   value = module.iam.lambda_log_group_name
 }
+
+
+# Lambda + API Gateway
+output "lambda_function_name" {
+  value = module.lambda.lambda_function_name
+}
+
+output "lambda_function_arn" {
+  value = module.lambda.lambda_function_arn
+}
+
+output "api_endpoint" {
+  value = module.lambda.api_endpoint
+}

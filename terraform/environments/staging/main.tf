@@ -112,3 +112,20 @@ module "iam" {
   sns_topic_arn       = module.sns.topic_arn
   eventbridge_bus_arn = module.eventbridge.bus_arn
 }
+
+
+
+# -----------------------------------------------------------------------------
+# Module: Lambda + API Gateway
+# -----------------------------------------------------------------------------
+module "lambda" {
+  source = "../../modules/lambda"
+
+  project         = var.project
+  env             = var.env
+  lambda_role_arn = module.iam.lambda_role_arn
+  table_name      = module.dynamodb.table_name
+  event_bus_name  = module.eventbridge.bus_name
+  source_dir      = "${path.root}/../../../lambda/producer"
+  log_level       = "INFO"
+}
