@@ -29,3 +29,4 @@ Thumbs.db
 .idea/
 .bootstrap-outputs
 .outputs/
+terraform/modules/lambda/build/
