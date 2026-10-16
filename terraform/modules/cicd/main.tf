@@ -13,7 +13,6 @@ resource "aws_iam_openid_connect_provider" "github" {
   # GitHub's OIDC thumbprint (root CA)
   # AWS now manages the thumbprint automatically — this is a fallback
   thumbprint_list = [
-    "6938fd4d98bab03faadb97b34396831e3780aea1",
     "1c58a3a8518e8759bf075b76b750d4f2df264fcd",
   ]
 
@@ -38,6 +37,7 @@ resource "aws_iam_role" "github_actions" {
     Version = "2012-10-17"
     Statement = [
       {
+        Sid    = "GitHubActionsOIDC"
         Effect = "Allow"
         Action = "sts:AssumeRoleWithWebIdentity"
         Principal = {
@@ -48,10 +48,21 @@ resource "aws_iam_role" "github_actions" {
             "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
           }
           StringLike = {
-            "token.actions.githubusercontent.com:sub" = [
-              for branch in var.allowed_branches :
-              "repo:${var.github_org}/${var.github_repo}:ref:refs/heads/${branch}"
-            ]
+            "token.actions.githubusercontent.com:sub" = concat(
+              # Direct pushes to allowed branches
+              [
+                for branch in var.allowed_branches :
+                "repo:${var.github_org}/${var.github_repo}:ref:refs/heads/${branch}"
+              ],
+              # PR-triggered workflows
+              [
+                "repo:${var.github_org}/${var.github_repo}:pull_request"
+              ],
+              # Environment-gated workflows (like terraform-apply with environment: staging)
+              [
+                "repo:${var.github_org}/${var.github_repo}:environment:*"
+              ]
+            )
           }
         }
       }
@@ -65,8 +76,6 @@ resource "aws_iam_role" "github_actions" {
     ManagedBy   = "terraform"
   }
 }
-
-
 
 # -----------------------------------------------------------------------------
 # IAM Policy — permissions GitHub Actions needs
