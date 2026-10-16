@@ -133,3 +133,5 @@ module "lambda" {
 # CI/CD pipeline trigger — 2026-10-16T21:10:18Z
 
 # Retrigger after immutable subject fix 20261016-214019
+
+# Retrigger after tfvars fix 20261016-214227
