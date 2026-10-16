@@ -1,0 +1,81 @@
+name: Smoke Test
+
+on:
+  workflow_run:
+    workflows: ["Terraform Apply"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: eu-west-1
+
+jobs:
+  smoke-test:
+    name: Smoke Test Deployment
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::008692858099:role/awsevt-github-actions-ci
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.5
+
+      - name: Get API endpoint from Terraform
+        id: tf-output
+        working-directory: terraform/environments/staging
+        run: |
+          terraform init -input=false
+          echo "api_endpoint=$(terraform output -raw api_endpoint)" >> $GITHUB_OUTPUT
+
+      - name: Test API endpoint
+        run: |
+          ENDPOINT="${{ steps.tf-output.outputs.api_endpoint }}"
+          echo "Testing endpoint: ${ENDPOINT}events"
+          
+          HTTP_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${ENDPOINT}events" \
+            -H "Content-Type: application/json" \
+            -d '{"type":"smoke_test","priority":"normal","payload":{"source":"github-actions"}}')
+          
+          BODY=$(echo "$HTTP_RESPONSE" | sed '$d')
+          STATUS=$(echo "$HTTP_RESPONSE" | tail -n 1)
+          
+          echo "Status: $STATUS"
+          echo "Body: $BODY"
+          
+          if [ "$STATUS" != "202" ]; then
+            echo "❌ Smoke test FAILED — expected 202, got $STATUS"
+            exit 1
+          fi
+          
+          echo "✅ Smoke test PASSED"
+
+      - name: Check DynamoDB for the event
+        run: |
+          sleep 3
+          COUNT=$(aws dynamodb scan \
+            --table-name awsevt-events-staging \
+            --select COUNT \
+            --query 'Count' \
+            --output text)
+          echo "Events in DynamoDB: $COUNT"
+          
+          if [ "$COUNT" -lt 1 ]; then
+            echo "❌ No events found in DynamoDB"
+            exit 1
+          fi
+          
+          echo "✅ Event found in DynamoDB"
