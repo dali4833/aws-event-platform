@@ -22,3 +22,5 @@ Full details in [`docs/architecture.md`](docs/architecture.md).
 ## Status
 
 Work in progress.
+
+<- Fixed SQS resource policy to allow EventBridge to send Trigger CI/CD re-run -->
