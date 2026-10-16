@@ -11,7 +11,7 @@ resource "aws_iam_openid_connect_provider" "github" {
   ]
 
   # GitHub's OIDC thumbprint (root CA)
-  # AWS now manages the thumbprint automatically — this is a fallback
+  # AWS now manages the thumbprint automatically for well-known providers
   thumbprint_list = [
     "1c58a3a8518e8759bf075b76b750d4f2df264fcd",
   ]
@@ -23,8 +23,6 @@ resource "aws_iam_openid_connect_provider" "github" {
     ManagedBy   = "terraform"
   }
 }
-
-
 
 # -----------------------------------------------------------------------------
 # IAM Role for GitHub Actions
@@ -49,16 +47,25 @@ resource "aws_iam_role" "github_actions" {
           }
           StringLike = {
             "token.actions.githubusercontent.com:sub" = concat(
-              # Direct pushes to allowed branches
+              # Immutable format (with numeric IDs) — current GitHub default
+              [
+                for branch in var.allowed_branches :
+                "repo:${var.github_org}@*/${var.github_repo}@*:ref:refs/heads/${branch}"
+              ],
+              [
+                "repo:${var.github_org}@*/${var.github_repo}@*:pull_request"
+              ],
+              [
+                "repo:${var.github_org}@*/${var.github_repo}@*:environment:*"
+              ],
+              # Legacy format (without numeric IDs)
               [
                 for branch in var.allowed_branches :
                 "repo:${var.github_org}/${var.github_repo}:ref:refs/heads/${branch}"
               ],
-              # PR-triggered workflows
               [
                 "repo:${var.github_org}/${var.github_repo}:pull_request"
               ],
-              # Environment-gated workflows (like terraform-apply with environment: staging)
               [
                 "repo:${var.github_org}/${var.github_repo}:environment:*"
               ]
@@ -119,24 +126,15 @@ resource "aws_iam_role_policy" "github_actions" {
         Sid    = "ManageInfrastructure"
         Effect = "Allow"
         Action = [
-          # VPC / EC2
           "ec2:*",
-          # Lambda
           "lambda:*",
-          # API Gateway
           "apigateway:*",
           "execute-api:*",
-          # DynamoDB
           "dynamodb:*",
-          # SQS
           "sqs:*",
-          # SNS
           "sns:*",
-          # EventBridge
           "events:*",
-          # ECR
           "ecr:*",
-          # IAM (limited)
           "iam:GetRole",
           "iam:GetRolePolicy",
           "iam:GetPolicy",
@@ -146,12 +144,9 @@ resource "aws_iam_role_policy" "github_actions" {
           "iam:ListAttachedRolePolicies",
           "iam:ListPolicyVersions",
           "iam:PassRole",
-          # CloudWatch
           "logs:*",
           "cloudwatch:*",
-          # STS
           "sts:GetCallerIdentity",
-          # Tagging
           "tag:GetResources",
         ]
         Resource = "*"
