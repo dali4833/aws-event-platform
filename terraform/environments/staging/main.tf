@@ -129,3 +129,5 @@ module "lambda" {
   source_dir      = "${path.root}/../../../lambda/producer"
   log_level       = "INFO"
 }
+
+# CI/CD pipeline trigger — 2026-10-16T21:10:18Z
