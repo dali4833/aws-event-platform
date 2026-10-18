@@ -73,15 +73,13 @@ module "sqs" {
   queue_name = "events"
 }
 
-# -----------------------------------------------------------------------------
-# Module: SNS
-# -----------------------------------------------------------------------------
 module "sns" {
   source = "../../modules/sns"
 
-  project    = var.project
-  env        = var.env
-  topic_name = "notifications"
+  project            = var.project
+  env                = var.env
+  topic_name         = "notifications"
+  notification_email = var.notification_email
 }
 
 # -----------------------------------------------------------------------------
@@ -129,6 +127,12 @@ module "lambda" {
   source_dir      = "${path.root}/../../../lambda/producer"
   log_level       = "INFO"
 }
+
+
+
+
+
+
 
 # CI/CD pipeline trigger — 2026-10-16T21:10:18Z
 

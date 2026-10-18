@@ -13,3 +13,9 @@ variable "topic_name" {
   type        = string
   default     = "notifications"
 }
+
+variable "notification_email" {
+  description = "Email address for SNS notifications (leave empty to disable)"
+  type        = string
+  default     = ""
+}
