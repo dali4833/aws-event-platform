@@ -129,6 +129,25 @@ module "lambda" {
 }
 
 
+# -----------------------------------------------------------------------------
+# Module: Monitoring (CloudWatch dashboard + alarms)
+# -----------------------------------------------------------------------------
+module "monitoring" {
+  source = "../../modules/monitoring"
+
+  project              = var.project
+  env                  = var.env
+  aws_region           = var.aws_region
+  lambda_function_name = module.lambda.lambda_function_name
+  api_gateway_id       = module.lambda.api_id
+  dynamodb_table_name  = module.dynamodb.table_name
+  sqs_queue_name       = module.sqs.queue_name
+  sqs_dlq_name         = module.sqs.dlq_name
+  sns_topic_arn        = module.sns.topic_arn
+}
+
+
+
 
 
 

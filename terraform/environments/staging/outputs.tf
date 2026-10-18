@@ -82,3 +82,17 @@ output "lambda_function_arn" {
 output "api_endpoint" {
   value = module.lambda.api_endpoint
 }
+
+
+
+
+# Monitoring
+output "dashboard_url" {
+  description = "URL to view the CloudWatch dashboard"
+  value       = module.monitoring.dashboard_url
+}
+
+output "alarm_names" {
+  description = "List of CloudWatch alarm names"
+  value       = module.monitoring.alarm_names
+}
