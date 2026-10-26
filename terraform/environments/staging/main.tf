@@ -153,7 +153,6 @@ module "monitoring" {
 # -----------------------------------------------------------------------------
 module "eks" {
   source = "../../modules/eks"
-
   cluster_name    = "awsevt-eks-staging"
   cluster_version = "1.30"
   vpc_id          = module.vpc.vpc_id
@@ -165,6 +164,30 @@ module "eks" {
   max_size           = 2
 }
 
+
+# -----------------------------------------------------------------------------
+# Module: Allow terraform-admin user to access the EKS cluster
+# -----------------------------------------------------------------------------
+
+resource "aws_eks_access_entry" "terraform_admin" {
+  cluster_name  = module.eks.cluster_name
+  principal_arn = "arn:aws:iam::008692858099:user/terraform-admin"
+  type          = "STANDARD"
+
+  depends_on = [module.eks]
+}
+
+resource "aws_eks_access_policy_association" "terraform_admin" {
+  cluster_name  = module.eks.cluster_name
+  principal_arn = "arn:aws:iam::008692858099:user/terraform-admin"
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+
+  access_scope {
+    type = "cluster"
+  }
+
+  depends_on = [aws_eks_access_entry.terraform_admin]
+}
 
 
 # CI/CD pipeline trigger — 2026-10-16T21:10:18Z
