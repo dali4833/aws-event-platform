@@ -172,3 +172,4 @@ module "eks" {
 # Retrigger after immutable subject fix 20261016-214019
 
 # Retrigger after tfvars fix 20261016-214227
+# Trigger EKS apply
