@@ -157,7 +157,7 @@ module "eks" {
   cluster_name    = "awsevt-eks-staging"
   cluster_version = "1.30"
   vpc_id          = module.vpc.vpc_id
-  subnet_ids      = module.vpc.public_subnet_ids   # ← adjust if different
+  subnet_ids      = module.vpc.public_subnet_ids # ← adjust if different
 
   node_instance_type = "t3.small"
   desired_size       = 1
