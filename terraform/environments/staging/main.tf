@@ -152,7 +152,7 @@ module "monitoring" {
 # Module: eks
 # -----------------------------------------------------------------------------
 module "eks" {
-  source = "../../modules/eks"
+  source          = "../../modules/eks"
   cluster_name    = "awsevt-eks-staging"
   cluster_version = "1.30"
   vpc_id          = module.vpc.vpc_id
