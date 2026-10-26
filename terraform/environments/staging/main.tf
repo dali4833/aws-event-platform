@@ -152,18 +152,18 @@ module "monitoring" {
 # Module: eks
 # -----------------------------------------------------------------------------
 module "eks" {
-  source          = "../../modules/eks"
+  source = "../../modules/eks"
+
   cluster_name    = "awsevt-eks-staging"
   cluster_version = "1.30"
   vpc_id          = module.vpc.vpc_id
-  subnet_ids      = module.vpc.public_subnet_ids # ← adjust if different
+  subnet_ids      = module.vpc.public_subnet_ids
 
-  node_instance_type = "t3.small"
-  desired_size       = 1
+  node_instance_type = "t3.medium" # ← was t3.small
+  desired_size       = 2           # ← was 1
   min_size           = 1
-  max_size           = 2
+  max_size           = 3
 }
-
 
 # -----------------------------------------------------------------------------
 # Module: Allow terraform-admin user to access the EKS cluster
