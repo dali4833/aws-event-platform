@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rework-platform
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://gitlab.com/dali4833-group/app-dotnet-rework.git'
+    targetRevision: HEAD
+    path: helm/rework-platform
+    helm:
+      valueFiles:
+        - values-dev.yaml
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: rework
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
